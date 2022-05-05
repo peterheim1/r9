@@ -1,7 +1,7 @@
 /*last update 5/5/22
  * it works
  * needs calibration 
- * 
+ * add to git hub
  */
 #include <Messenger.h>
 #include <Wire.h>
