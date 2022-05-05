@@ -1,52 +1,47 @@
-# Prerequisites
-*.d
-
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
-
-# Linker output
-*.ilk
-*.map
-*.exp
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-
-# Shared objects (inc. Windows DLLs)
-*.dll
+*.launch~
+*.py~
+*.ino~
+*.txt~
+*.xml~
+*.pyc
+*.xacro~
+*.py[cod]
+*.gitnore~
+*~
+*.ymal~
+# C extensions
 *.so
-*.so.*
-*.dylib
+*.py~
 
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+var
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
+srv_gen
+msg_gen
+__pycache__
 
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
+# Installer logs
+pip-log.txt
 
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
+# Unit test / coverage reports
+.coverage
+.tox
+nosetests.xml
+
+# Translations
+*.mo
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
