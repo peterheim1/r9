@@ -1,0 +1,128 @@
+<?xml version="1.0"?>
+
+<!-- XML namespaces -->
+  <robot name="robbie" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:property name="PI" value="3.1415" />  
+    <xacro:property name="M_PI" value="3.14159"/>
+    <xacro:property name="M_SCALE" value="0.001"/>
+    <xacro:property name="C_SCALE" value="0.0034"/>
+    <xacro:property name="MESH_EXT" value="stl"/>
+
+   
+    <xacro:include filename="$(find robbie)/urdf/hardware.xacro" />
+   
+    
+    
+  
+ <link name="base_footprint">
+    </link>
+        
+    <xacro:my_box name="base_link" lwh="0.4 0.2 0.1" xyz="0 0 0" rpy="0 0 0" mass="0.1" material="Gazebo/FlatBlack">
+	        <xacro:grey2 />
+        </xacro:my_box>     
+  
+ 
+  
+  <link name="scanner_link" >
+   <visual>
+      <geometry>
+        <mesh filename="package://robbie/mesh/X4.stl" scale="${M_SCALE} ${M_SCALE} ${M_SCALE}"/>
+      </geometry>
+         <xacro:black/>
+      <origin rpy="0 0 0" xyz="0 -0 0"/>
+    </visual>
+   <collision>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <mesh filename="package://robbie/mesh/X4.stl" scale="${M_SCALE} ${M_SCALE} ${M_SCALE}"/>
+          </geometry>
+      </collision>
+  </link>
+  
+   <joint name="base_footprint_joint" type="fixed">
+    	<parent link="base_footprint" />
+    	<child link="base_link" />
+    	<origin xyz="0 0 0.09" rpy="0 0 0" />
+	</joint> 
+  
+  <joint name="scanner_link" type="fixed">
+    	<parent link="base_link" />
+    	<child link="scanner_link" />
+    	<origin xyz="0.15 0 0.12" rpy="0 0 -1.57" />
+	</joint> 
+  
+ <!-- steering joints --> 
+    <!-- front left-->      	
+  <joint name="left_front_steering_joint" type="revolute">
+    	<parent link="base_link" />
+    	<child link="left_front_steering_link" />
+    	<origin xyz="0.15 0.15 0.03" rpy="0 0 0" />   
+    	
+    	<axis xyz="0 0 1" />
+    	<limit lower="-1.57" upper="1.57" effort="100" velocity="10" />
+      	<dynamics damping="0.001"/>   
+     </joint>
+     <xacro:my_cylinder name="left_front_steering_link" l="0.01" r="0.05" xyz="0 0 0" rpy="0 0 0" mass="0.1" material="Gazebo/Grey">		
+       <xacro:blue />
+     </xacro:my_cylinder> 
+
+ <!-- front right--> 
+      <joint name="right_front_steering_joint" type="revolute">
+    	<parent link="base_link" />
+    	<child link="right_front_steering_joint" />
+    	<origin xyz="0.15 -0.15 0.03" rpy="0 0 0" />     	
+    	<axis xyz="0 0 1" />
+    	<limit lower="-1.57" upper="1.57" effort="100" velocity="10" />
+      	<dynamics damping="0.001"/>   
+     </joint>
+     <xacro:my_cylinder name="right_front_steering_joint" l="0.01" r="0.05" xyz="0 0 0" rpy="0 0 0" mass="0.1" material="Gazebo/Grey">		
+       <xacro:blue />
+     </xacro:my_cylinder>
+
+  <joint name="left_rear_steering_joint" type="revolute">
+    	<parent link="base_link" />
+    	<child link="left_rear_steering_link" />
+    	<origin xyz="-0.15 0.15 0.03" rpy="0 0 0" />   
+    	
+    	<axis xyz="0 0 1" />
+    	<limit lower="-1.57" upper="1.57" effort="100" velocity="10" />
+      	<dynamics damping="0.001"/>   
+     </joint>
+     <xacro:my_cylinder name="left_rear_steering_link" l="0.01" r="0.05" xyz="0 0 0" rpy="0 0 0" mass="0.1" material="Gazebo/Grey">		
+       <xacro:blue />
+     </xacro:my_cylinder> 
+
+ <!-- rear right--> 
+      <joint name="right_rear_steering_joint" type="revolute">
+    	<parent link="base_link" />
+    	<child link="right_rear_steering_link" />
+    	<origin xyz="-0.15 -0.15 0.03" rpy="0 0 0" />     	
+    	<axis xyz="0 0 1" />
+    	<limit lower="-1.57" upper="1.57" effort="100" velocity="10" />
+      	<dynamics damping="0.001"/>   
+     </joint>
+     <xacro:my_cylinder name="right_rear_steering_link" l="0.01" r="0.05" xyz="0 0 0" rpy="0 0 0" mass="0.1" material="Gazebo/Grey">		
+       <xacro:blue />
+     </xacro:my_cylinder>
+     
+ <!-- front left wheel-->     
+   <joint name="V_F_L" type="continuous">
+    	<parent link="left_front_steering_link" />
+    	<child link="V_F_L_link" />
+    	<origin xyz="0 0 -0.07" rpy="0 0 0" />   
+    	
+    	<axis xyz="0 1 0" />
+    	<calibration rising="0.0"/>
+       <dynamics damping="0.0" friction="0.0"/>
+       <limit effort="30" velocity="1.0" lower="-2.2" upper="0.7" />
+       <safety_controller k_velocity="10" k_position="15" soft_lower_limit="-2.0" soft_upper_limit="0.5" />
+      	<dynamics damping="0.001"/>   
+     </joint>
+     <xacro:my_cylinder name="V_F_L_link" l="0.04" r="0.05" xyz="0 0 0" rpy="1.57 0 0" mass="0.1" material="Gazebo/Grey">		
+       <xacro:black />
+     </xacro:my_cylinder>   
+
+
+
+</robot>

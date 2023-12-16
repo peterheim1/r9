@@ -30,7 +30,7 @@ def generate_launch_description():
 
     use_sim_time = LaunchConfiguration('use_sim_time', default='false')
 
-    suitee_xacro = os.path.join(get_package_share_directory('robbie'), 'urdf', 'simple.xacro')
+    suitee_xacro = os.path.join(get_package_share_directory('robbie'), 'urdf', 'robbie.urdf.xacro')
 
     declare_use_sim_time_argument = DeclareLaunchArgument(
         'use_sim_time',
@@ -49,21 +49,21 @@ def generate_launch_description():
 
     drive_node = Node(
             name='arduino',
-            package='r2_bringup',
-            executable='arduino',
+            package='robbie',
+            executable='base_driver.py',
             output='screen',
         )
     arm_node = Node(
             #name='arm_driver',
-            package='r2_bringup',
-            executable='arm_driver',
+            package='robbie',
+            executable='arm_driver.py',
             output='screen',
         )
 
     voice_node = Node(
             name='voice_driver',
-            package='r2_bringup',
-            executable='voice_serv',
+            package='robbie',
+            executable='voice_serv.py',
             output='screen',
         )
     lidar_node = Node(
@@ -87,7 +87,7 @@ def generate_launch_description():
     ld.add_action(robot_state_publisher_node)
     ld.add_action(drive_node)
     #ld.add_action(arm_node)
-    ld.add_action(voice_node)
+    #ld.add_action(voice_node)
     ld.add_action(lidar_node)
 
     return ld

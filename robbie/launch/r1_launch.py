@@ -21,7 +21,7 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
     pkg_share = FindPackageShare('robbie').find('robbie')
-    urdf_file = os.path.join(pkg_share, 'urdf', 'robbie.urdf')
+    urdf_file = os.path.join(pkg_share, 'urdf', 'robbie.urdf.xacro')
     with open(urdf_file, 'r') as infp:
         robot_desc = infp.read()
     rsp_params = {'robot_description': robot_desc}
@@ -32,9 +32,9 @@ def generate_launch_description():
              output='screen', parameters=[rsp_params]),
              
         Node(
-            package='r2_bringup',
+            package='robbie',
             #namespace='robbie',
-            executable='arduino',
+            executable='base_driver.py',
             name='arduino'
         )
     ])

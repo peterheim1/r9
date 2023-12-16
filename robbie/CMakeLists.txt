@@ -17,16 +17,44 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(urdf REQUIRED)
+find_package(rclpy REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(action_msgs REQUIRED)
+#find_package(ros2_control REQUIRED)
+#find_package(ros2_controllers REQUIRED)
+#find_package(dynamixel_hardware REQUIRED)
+find_package(tf2 REQUIRED)
 
-install(DIRECTORY mesh param urdf launch map rviz
+install(DIRECTORY config scripts launch maps mesh urdf
   DESTINATION share/${PROJECT_NAME}
 )
 
+# Install Python modules
+ament_python_install_package(${PROJECT_NAME})
+
+# Install Python executables
+install(PROGRAMS
+  scripts/arm_driver.py
+  scripts/base_driver.py
+  scripts/voice_serv.py
+  #scripts/sim_base_driver.py
+  #scripts/imu_driver.py
+  #scripts/base_driver.py
+  #scripts/low_bat_nav.py
+  #scripts/security_demo.py
+  #scripts/waypoint_follower.py
+  #scripts/battery_state/battery_state_pub.py
+  #scripts/navigate_to_charging_dock.py
+  #scripts/navigate_to_charging_dock_v2.py
+  #scripts/transforms/map_to_base_link_transform.py
+  DESTINATION lib/${PROJECT_NAME}
+)
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
