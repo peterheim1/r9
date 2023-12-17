@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 from robbie_msg.srv import Say
 from espeak import espeak
 import rclpy

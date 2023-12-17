@@ -1,7 +1,6 @@
-#! /usr/bin/env python3
 import rclpy
 import sys
-from time import time, sleep
+from time import time
 import tf2_ros
 import math
 from math import sin, cos, pi, radians, degrees
@@ -29,10 +28,7 @@ class MinimalPublisher(Node):
         self.v_right = 0
         self.v_des_left = 0             # cmd_vel setpoint
         self.v_des_right = 0
-        self.last = 0
         self.last_cmd_vel = 0
-        self.right_enc_r =0
-        self.left_enc_r = 0
         self.ticksPerMeter = int(78200) #68948  25837
         self.wheel_track = float(0.27)
         self.OnCharge = 0
@@ -117,7 +113,7 @@ class MinimalPublisher(Node):
             self.right_enc_r = int(lineParts[2])
             
         except:
-            self.get_logger().info("Unexpected error odomfrom base driver.py   :" + str(sys.exc_info()[0]))
+            self.get_logger().info("Unexpected error odomfrom arduino.py   :" + str(sys.exc_info()[0]))
         
         #now = Node.get_clock(self).now()
         #tt = now.nanoseconds * 1e-6
@@ -208,18 +204,14 @@ class MinimalPublisher(Node):
         
     def Start(self):
         #self.get_logger().info("Starting start function but wait")
-        self._SerialDataGateway.Start()
-        sleep(5)
-        message = 'c \r'
-        self._WriteSerial(message)
-
+        
         self._SerialDataGateway.Start()
         message = 'c \r'
         self._WriteSerial(message)
         
     def Stop(self):
         self.get_logger().info("Stopping")
-        message = 'c \r'
+        message = 'r \r'
         self._WriteSerial(message)
         sleep(5)
         self._SerialDataGateway.Stop()

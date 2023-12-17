@@ -1,19 +1,16 @@
-#! /usr/bin/env python3
 import rclpy
 import sys
-from time import time, sleep
+import time
 import tf2_ros
 import math
 from math import sin, cos, pi, radians, degrees
 from rclpy.node import Node
-from std_msgs.msg import String, Float32
-from sensor_msgs.msg import BatteryState
-from std_srvs.srv import Empty
+from std_msgs.msg import String
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3, TransformStamped
 
 from SerialDataGateway3 import SerialDataGateway
-
+from pose import Pose
 class MinimalPublisher(Node):
 
     def __init__(self):
@@ -22,6 +19,7 @@ class MinimalPublisher(Node):
          #         Internal data        
         self.enc_left = None            # encoder readings
         self.enc_right = None
+        self.pose = Pose()
         self.x = 0                      # position in xy plane
         self.y = 0
         self.th = 0                     # rotation in radians
@@ -29,34 +27,22 @@ class MinimalPublisher(Node):
         self.v_right = 0
         self.v_des_left = 0             # cmd_vel setpoint
         self.v_des_right = 0
-        self.last = 0
         self.last_cmd_vel = 0
-        self.right_enc_r =0
-        self.left_enc_r = 0
-        self.ticksPerMeter = int(78200) #68948  25837
-        self.wheel_track = float(0.27)
-        self.OnCharge = 0
+        self.ticksPerMeter = int(68948)
+        self.wheelSeparation = float(0.25)
         self.lastTime = Node.get_clock(self).now()
-        self.publisher_ = self.create_publisher(String, 'base_serial', 10)
+        self.publisher_ = self.create_publisher(String, 'arm_serial', 10)
+        
         self._OdometryPublisher = self.create_publisher(Odometry,'odom', 10)
         self._OdometryTransformBroadcaster = tf2_ros.TransformBroadcaster(self)
-        self._batteryPublisher = self.create_publisher(BatteryState,'battery_state', 10)
-        self._anglePublisher = self.create_publisher(Float32,'angle', 10)
-        self._SerialDataGateway = SerialDataGateway("/dev/linorobot", 115200,  self._HandleReceivedLine)
+        
+        self._SerialDataGateway = SerialDataGateway("/dev/ttyUSB0", 115200,  self._HandleReceivedLine)
         
         self.Start()
+        # Clear any old odometry info
+        #self.Enc_reset()
         self.subscription = self.create_subscription(Twist,'cmd_vel', self._HandleVelocityCommand,10)
         self.subscription  # prevent unused variable warning
-        self.srv = self.create_service(Empty, 'autodock', self.AutoDock_callback)
-        
-        now = Node.get_clock(self).now()   
-        #self.then = self.now # time for determining dx/dy
-        self.last = int(time() * 1000)
-        #self.t_next = now + self.t_delta
-        self.odom_linear_scale_correction = 1
-        self.odom_angular_scale_correction = 1
-        
-        
 
     def _HandleReceivedLine(self,  line):
         msg = String()
@@ -72,95 +58,81 @@ class MinimalPublisher(Node):
                         if (lineParts[0] == 'o'):
                                 self._Broadcast_Odom(lineParts)
                                 return
-                        if (lineParts[0] == 'a'):
-                                self._Broadcast_angle(lineParts)
+                        if (lineParts[0] == 's'):
+                                self._Broadcast_Servo(lineParts)
                                 return
-                        if (lineParts[0] == 'b'):
-                                self._Broadcast_battery(lineParts)
-                                return                     
                                 
-    def _Broadcast_angle(self, lineParts):
+    def _Broadcast_servos(self, lineParts):
         #self.get_logger().info(lineParts[1])
         partsCount = len(lineParts)
         #self.get_logger().info(str(partsCount))
         if (partsCount  < 2):
                 pass
-        msg = Float32()
-        
-        msg.data = float(lineParts[1])
-        self._anglePublisher.publish(msg)
-        #self.get_logger().info(str(msg))
-       
-            
-    def _Broadcast_battery(self, lineParts):
-        #self.get_logger().info(lineParts[1])
-        partsCount = len(lineParts)
-        #self.get_logger().info(str(partsCount))
-        volt = float(lineParts[1])* 0.015867159
-        per = int((volt / 13.4) * 100)
-        msg = BatteryState()
-        msg.voltage = volt
-        msg.power_supply_status = 1
-        msg.header.stamp = Node.get_clock(self).now().to_msg()
-        #msg.voltage = float(lineParts[1])* 0.015867159
-        msg.percentage = float(per)
-        self._batteryPublisher.publish(msg)
-        #self.get_logger().info(str(msg))
-        
+        try:
+            p1 = (lineParts[4])
+            self.get_logger().info(str(p1))
+        except:
+            self.get_logger().info("Unexpected error:left_lift_joint" + str(sys.exc_info()[0]))
             
     def _Broadcast_Odom(self, lineParts):
         partsCount = len(lineParts)
         if (partsCount  < 6):
             pass
         try:
-            self.left_enc_r = int(lineParts[1])
-            self.right_enc_r = int(lineParts[2])
-            
-        except:
-            self.get_logger().info("Unexpected error odomfrom base driver.py   :" + str(sys.exc_info()[0]))
-        
-        #now = Node.get_clock(self).now()
-        #tt = now.nanoseconds * 1e-6
-        #loop to publish data at 50hz
-        if int(time() * 1000) > self.last:
-            dt = (int(time() * 1000) - self.last) * 0.1
-            #print(dt)
-            
-            
+            enc_left = int(lineParts[1])
+            enc_right = int(lineParts[2])
             # Calculate odometry
             
-            if self.enc_left == None:
-                dright = 0
-                dleft = 0
-                
-            else:
-                dright = (self.right_enc_r - self.enc_right) / self.ticksPerMeter
-                dleft = (self.left_enc_r - self.enc_left) / self.ticksPerMeter
-                #print(dright)
-            self.enc_right = self.right_enc_r
-            self.enc_left = self.left_enc_r
-            #print()
-            dxy_ave = self.odom_linear_scale_correction * (dright + dleft) / 2.0
-            dth = self.odom_angular_scale_correction * (dright - dleft) / float(self.wheel_track)
-            vxy = dxy_ave / dt
-            vth = dth / dt
-            #print(dxy_ave)   
-            if (dxy_ave != 0):
-                dx = cos(dth) * dxy_ave
-                dy = -sin(dth) * dxy_ave
-                self.x += (cos(self.th) * dx - sin(self.th) * dy)
-                self.y += (sin(self.th) * dx + cos(self.th) * dy)
-    
-            if (dth != 0):
-                self.th += dth 
+            leftTravel = enc_left / self.ticksPerMeter
+            rightTravel = enc_right / self.ticksPerMeter
+            deltaTime = Node.get_clock(self).now() - self.lastTime
+            deltaTime = deltaTime.nanoseconds
+
+            deltaTravel = (rightTravel + leftTravel) / 2
+            deltaTheta = (rightTravel - leftTravel) / self.wheelSeparation
             
+            if rightTravel == leftTravel:
+                deltaX = leftTravel*cos(self.pose.theta)
+                deltaY = leftTravel*sin(self.pose.theta)
+            else:
+                radius = deltaTravel / deltaTheta
+                
+                # Find the instantaneous center of curvature (ICC).
+                iccX = self.pose.x - radius*sin(self.pose.theta)
+                iccY = self.pose.y + radius*cos(self.pose.theta)
+
+                deltaX = cos(deltaTheta)*(self.pose.x - iccX) \
+                    - sin(deltaTheta)*(self.pose.y - iccY) \
+                    + iccX - self.pose.x
+
+                deltaY = sin(deltaTheta)*(self.pose.x - iccX) \
+                    + cos(deltaTheta)*(self.pose.y - iccY) \
+                    + iccY - self.pose.y
+            
+            self.pose.x += deltaX
+            self.pose.y += deltaY
+            
+            self.pose.theta = (self.pose.theta + deltaTheta) % (2*pi)
+            print(self.pose.theta)
+            #self.lastTime = Node.get_clock(self).now()
+            
+            if deltaTime > 0:
+                self.pose.xVel = deltaTravel / deltaTime
+            else: 
+                self.pose.xVel = 0.0
+                
+            
+            self.pose.yVel = 0
+            
+            self.pose.thetaVel = deltaTheta / deltaTime if deltaTime > 0 else 0.
             
             quaternion = Quaternion()
             quaternion.x = 0.0
             quaternion.y = 0.0
-            quaternion.z = sin(self.th / 2.0)
-            quaternion.w = cos(self.th / 2.0)
-            
+            quaternion.z = sin(self.pose.theta)
+            quaternion.w = cos(self.pose.theta)		
+			           	
+
             rosNow = Node.get_clock(self).now().to_msg()
             
             t = TransformStamped()
@@ -168,8 +140,8 @@ class MinimalPublisher(Node):
             t.header.stamp = rosNow
             t.header.frame_id = "odom"
             t.child_frame_id = 'base_footprint'
-            t.transform.translation.x = float(self.x)
-            t.transform.translation.y = float(self.y)
+            t.transform.translation.x = self.pose.x
+            t.transform.translation.y = self.pose.y
             t.transform.translation.z = 0.0
             q = (quaternion.x, quaternion.y, quaternion.z, quaternion.w)
             t.transform.rotation.x = q[0]
@@ -183,23 +155,25 @@ class MinimalPublisher(Node):
             odometry = Odometry()
             odometry.header.frame_id = "odom"
             odometry.header.stamp = rosNow
-            odometry.pose.pose.position.x = float(self.x)
-            odometry.pose.pose.position.y = float(self.y)
+            odometry.pose.pose.position.x = self.pose.x
+            odometry.pose.pose.position.y = self.pose.y
             #odometry.pose.pose.position.z = 0
             odometry.pose.pose.orientation = quaternion
 
             odometry.child_frame_id = "base_footprint"
-            odometry.twist.twist.linear.x = vxy
+            odometry.twist.twist.linear.x = self.pose.xVel
             #odometry.twist.twist.linear.y = 0
-            odometry.twist.twist.angular.z = vth
+            odometry.twist.twist.angular.z = self.pose.thetaVel
 
             self._OdometryPublisher.publish(odometry)
             
-            #self.get_logger().info(str(odometry))
+            #self.get_logger().info(self.pose.theta)
+            self.lastTime = Node.get_clock(self).now()
             
-            self.last = int(time() * 1000) + 100
-        
+        except:
+            self.get_logger().info("Unexpected error odomfrom arduino.py   :" + str(sys.exc_info()[0]))
 
+                    
 
         
     def Enc_reset(self):       
@@ -208,18 +182,14 @@ class MinimalPublisher(Node):
         
     def Start(self):
         #self.get_logger().info("Starting start function but wait")
+        
         self._SerialDataGateway.Start()
-        sleep(5)
-        message = 'c \r'
-        self._WriteSerial(message)
-
-        self._SerialDataGateway.Start()
-        message = 'c \r'
+        message = 's \r'
         self._WriteSerial(message)
         
     def Stop(self):
         self.get_logger().info("Stopping")
-        message = 'c \r'
+        message = 'r \r'
         self._WriteSerial(message)
         sleep(5)
         self._SerialDataGateway.Stop()
@@ -245,19 +215,12 @@ class MinimalPublisher(Node):
             left = x - th * 0.25 / 2.0
             right = x + th * 0.25 / 2.0
             
-        v_des_left = int(left * 1000)# 
-        v_des_right = int(right * 1000)#ticks_per_meter 15915
+        v_des_left = int(left * 68948/10)# 
+        v_des_right = int(right * 68948/10)#ticks_per_meter 15915
         self.get_logger().info("Handling twist ommand: " + str(v_des_left) + "," + str(v_des_right))
-        message = 'm %.2f %.2f\r' % (v_des_left, v_des_right)
+        message = 's %.2f %.2f\r' % (v_des_left, v_des_right)
         #self.get_logger().info("Sending speed command message: " + message)
         self._WriteSerial(message)
-        
-    def AutoDock_callback(self, request, responce):
-        responce
-        message = 'a \r' 
-        self.get_logger().info("Sending auto dock message: " + message)
-        self._WriteSerial(message)
-        return responce
         
 
 def main(args=None):

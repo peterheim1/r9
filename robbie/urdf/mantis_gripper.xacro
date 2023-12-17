@@ -54,7 +54,7 @@
    <link name="${side}_left_claw" >
    <visual>
       <geometry>
-        <mesh filename="package://robbiemesh/claw_3_l.stl" scale="${M_SCALE} ${M_SCALE} ${M_SCALE}"/>
+        <mesh filename="package://robbie/mesh/claw_3_l.stl" scale="${M_SCALE} ${M_SCALE} ${M_SCALE}"/>
       </geometry>
          <xacro:White/>
       <origin rpy="0 0 0" xyz="0 0 0"/>

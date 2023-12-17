@@ -28,13 +28,13 @@ def generate_launch_description():
 
     return LaunchDescription([
         
-        Node(package='robot_state_publisher', executable='robot_state_publisher',
-             output='screen', parameters=[rsp_params]),
+        #Node(package='robot_state_publisher', executable='robot_state_publisher',
+             #output='screen', parameters=[rsp_params]),
              
         Node(
-            package='robbie',
+            package='r2_bringup',
             #namespace='robbie',
-            executable='base_driver.py',
+            executable='arduino',
             name='arduino'
         )
     ])
