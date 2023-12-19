@@ -1,0 +1,22 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/pi/ros2_ws/build/r2_bringup",
+        "/home/pi/ros2_ws/install/r2_bringup/lib/python3.10/site-packages",
+        "/home/pi/ros2_ws/install/robbie_msg/local/lib/python3.10/dist-packages",
+        "/home/pi/ros2_ws/install/robbie/local/lib/python3.10/dist-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages",
+        "",
+        "/home/pi/scripts"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/pi/ros2_ws/build/r2_bringup",
+        "/home/pi/ros2_ws/install/r2_bringup/lib/python3.10/site-packages",
+        "/home/pi/ros2_ws/install/robbie_msg/local/lib/python3.10/dist-packages",
+        "/home/pi/ros2_ws/install/robbie/local/lib/python3.10/dist-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages",
+        "",
+        "/home/pi/scripts"
+    ]
+}
